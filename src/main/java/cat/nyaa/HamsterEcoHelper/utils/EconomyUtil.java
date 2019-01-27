@@ -3,6 +3,7 @@ package cat.nyaa.HamsterEcoHelper.utils;
 import cat.nyaa.HamsterEcoHelper.HamsterEcoHelper;
 import cat.nyaa.HamsterEcoHelper.I18n;
 import cat.nyaa.nyaacore.utils.ItemStackUtils;
+import cn.dreamine.dev.dreamineBank.util.TransactionUtil;
 import net.milkbowl.vault.economy.Economy;
 import net.milkbowl.vault.economy.EconomyResponse;
 import org.bukkit.OfflinePlayer;
@@ -14,9 +15,11 @@ import java.util.Optional;
 public class EconomyUtil {
     public final Economy eco;
     private final HamsterEcoHelper plugin;
+    //private TransactionUtil tau;
 
     public EconomyUtil(HamsterEcoHelper p) {
         plugin = p;
+        //tau = new TransactionUtil();
         RegisteredServiceProvider<Economy> provider = p.getServer().getServicesManager().getRegistration(Economy.class);
         if (provider != null) {
             eco = provider.getProvider();
@@ -64,16 +67,28 @@ public class EconomyUtil {
                 MiscUtils.GiveStat stat = MiscUtils.giveItem(buyer, item);
                 return Optional.of(stat);
             }
-            EconomyResponse withdraw = eco.withdrawPlayer(buyer, price + tax);
-            if (!withdraw.transactionSuccess()) {
-                plugin.getLogger().info(I18n.format("log.info.withdraw_fail", buyer.getName(), seller.getName(), MiscUtils.getItemName(item), price, tax, withdraw.errorMessage));
-                return Optional.empty();
+
+            if(buyer.isOnline()){
+                EconomyResponse withdraw = eco.withdrawPlayer(buyer, price + tax);
+                if (!withdraw.transactionSuccess()) {
+                    plugin.getLogger().info(I18n.format("log.info.withdraw_fail", buyer.getName(), seller.getName(), MiscUtils.getItemName(item), price, tax, withdraw.errorMessage));
+                    return Optional.empty();
+                }
+            } else {
+                TransactionUtil.withdrawOffline(buyer , price+tax);
             }
+
             step = 1;
-            EconomyResponse deposit = eco.depositPlayer(seller, price);
-            if (!deposit.transactionSuccess()) {
-                throw new RuntimeException(deposit.errorMessage);
+
+            if(seller.isOnline()){
+                EconomyResponse deposit = eco.depositPlayer(seller, price);
+                if (!deposit.transactionSuccess()) {
+                    throw new RuntimeException(deposit.errorMessage);
+                }
+            }  else {
+                TransactionUtil.depositOffline(seller,price);
             }
+
             step = 2;
             if (tax > 0.0D) {
                 plugin.systemBalance.deposit(tax, plugin);
