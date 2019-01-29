@@ -40,20 +40,30 @@ public class EconomyUtil {
         return money <= balance(p);
     }
 
-    public boolean withdraw(OfflinePlayer p, long money) {
-        EconomyResponse rsp = eco.withdrawPlayer(p, money);
-        return rsp.transactionSuccess();
-    }
+    /*public boolean withdraw(OfflinePlayer p, long money) {
+        if(p.isOnline()){
+            EconomyResponse rsp = eco.withdrawPlayer(p, money);
+            return rsp.transactionSuccess();
+        } else {
+            TransactionUtil.withdrawOffline(p, money);
+            return true;
+        }
+    }*/
 
     public boolean withdraw(OfflinePlayer p, double money) {
-        EconomyResponse rsp = eco.withdrawPlayer(p, money);
-        return rsp.transactionSuccess();
+        if(p.isOnline()){
+            EconomyResponse rsp = eco.withdrawPlayer(p, money);
+            return rsp.transactionSuccess();
+        } else {
+            TransactionUtil.withdrawOffline(p, money);
+            return true;
+        }
     }
 
-    public boolean deposit(OfflinePlayer p, long money) {
+/*    public boolean deposit(OfflinePlayer p, long money) {
         EconomyResponse rsp = eco.depositPlayer(p, money);
         return rsp.transactionSuccess();
-    }
+    }*/
 
     public boolean deposit(OfflinePlayer p, double money) {
         EconomyResponse rsp = eco.depositPlayer(p, money);
